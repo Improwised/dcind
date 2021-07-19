@@ -1,0 +1,24 @@
+# Inspired by https://github.com/mumoshu/dcind
+# docker.io/library/maven:3.6.3-openjdk-8
+# docker.io/library/maven:3.8.1-openjdk-11
+# docker.io/library/maven:3.8.1-adoptopenjdk-11
+ARG IMAGE
+FROM docker.io/library/maven:${IMAGE}
+
+ENV DOCKER_VERSION=18.09.8
+# Install Docker and Docker Compose
+RUN set -ex; \
+    apt-get update; \
+    apt-get install -y util-linux lvm2 libffi-dev iptables iproute2 zip; \
+    curl https://download.docker.com/linux/static/stable/x86_64/docker-${DOCKER_VERSION}.tgz | tar zx && \
+    mv /docker/* /bin/; \
+    chmod +x /bin/docker*; \
+    rm -rf /root/.cache; apt-get clean autoclean; \
+    apt-get autoremove --yes; rm -rf /var/lib/{apt,dpkg,cache,log}/
+
+# Include functions to start/stop docker daemon
+COPY docker-lib.sh /docker-lib.sh
+COPY entrypoint.sh /entrypoint.sh
+
+ENTRYPOINT ["/entrypoint.sh"]
+CMD ["/bin/bash"]
